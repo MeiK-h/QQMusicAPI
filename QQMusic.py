@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # coding=utf-8
 import base64
 import json
@@ -102,6 +103,9 @@ class Song(object):
         print('歌词下载完成')
         return True
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         try:
             return '{}{} - {}  < {} >'.format('<失效> ' if self.status else '', self.title, ' / '.join(map(lambda x: x['name'], self.singer)), self.album['name'])
@@ -133,6 +137,9 @@ class SongList(object):
     def __getitem__(self, index):
         return self.song_list[index]
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         string = []
         index = 0
@@ -153,10 +160,18 @@ class SongList(object):
 class QQMusic(object):
     def search_song(self, key_word, page=1, num=20):
         ''' 根据关键词查找歌曲 '''
-        url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp'
-        url += '?new_json=1&aggr=1&cr=1&flag_qc=0&p=%d&n=%d&w=%s' \
-            % (page, num, key_word)
-        rst = requests.get(url)
+        rst = requests.get(
+            "https://c.y.qq.com/soso/fcgi-bin/client_search_cp",
+            params={
+                'new_json': '1',
+                'aggr': '1',
+                'cr': '1',
+                'flag_qc': '0',
+                'p': page,
+                'n': num,
+                'w': key_word
+            }
+        )
         data_list = json.loads(rst.text[9:-1])['data']['song']['list']
         song_list = []
         for line in data_list:
