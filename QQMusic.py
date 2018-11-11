@@ -57,7 +57,7 @@ class Song(object):
             return False
 
         media_data = requests.get(
-            'http: // dl.stream.qqmusic.qq.com/' + self.filename,
+            'http://dl.stream.qqmusic.qq.com/' + self.filename,
             params={
                 "vkey": self._get_vkey(),
                 "guid": self.guid,
