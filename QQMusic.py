@@ -22,7 +22,6 @@ class Song(object):
         self.song_mid = song_mid
         self.title = title
         self.vkey = ""
-        self.music_url = ""
         self.singer = singer
         self.album = album
         self.data = data
@@ -35,23 +34,20 @@ class Song(object):
 
     def _get_vkey(self):
         ''' 获取指定歌曲的vkey值 '''
-        url = 'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg?'
-        url += 'format=json&platform=yqq&cid=205361747&songmid=%s&filename=%s&guid=%s' \
-            % (self.song_mid, self.filename, self.guid)
-        rst = requests.get(url)
+
+        rst = requests.get(
+            'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg',
+            params={
+                'format': 'json',
+                'platform': 'yqq',
+                'cid': '205361747',
+                'songmid': self.song_mid,
+                'filename': self.filename,
+                'guid': self.guid
+            }
+        )
         self.vkey = json.loads(rst.text)['data']['items'][0]['vkey']
         return self.vkey
-
-    def get_music_url(self):
-        ''' 获取指定歌曲的播放地址 '''
-        try:
-            self._get_vkey()
-        except json.decoder.JSONDecodeError:
-            self._get_vkey()
-        url = 'http://dl.stream.qqmusic.qq.com/%s?' % self.filename
-        self.music_url = url + \
-            'vkey=%s&guid=%s&fromtag=30' % (self.vkey, self.guid)
-        return self.music_url
 
     def save(self, path=os.path.join(os.path.abspath('./'), 'song')):
         ''' 将此歌曲保存至本地 '''
@@ -60,9 +56,15 @@ class Song(object):
             print('目录', path, '不存在')
             return False
 
-        self.get_music_url()
-
-        media_data = requests.get(self.music_url, headers=self.headers)
+        media_data = requests.get(
+            'http: // dl.stream.qqmusic.qq.com/' + self.filename,
+            params={
+                "vkey": self._get_vkey(),
+                "guid": self.guid,
+                "formatag": 30
+            },
+            headers=self.headers
+        )
         if media_data.status_code != 200:
             print('歌曲或网络错误')
             return False
@@ -79,7 +81,13 @@ class Song(object):
             "Cookie": "skey=@LVJPZmJUX; p",
         }
         lrc_data = requests.get(
-            'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?g_tk=753738303&songmid=' + self.song_mid, headers=headers)
+            'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg',
+            params={
+                'g_tk': '753738303',
+                'songmid': self.song_mid
+            },
+            headers=headers
+        )
         if lrc_data.status_code != 200:
             print('歌词不存在或网络错误')
             return False
